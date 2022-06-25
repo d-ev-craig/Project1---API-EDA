@@ -1,0 +1,52 @@
+---
+title: "PokeAPI"
+author: "Daniel Craig"
+date: '2022-06-25'
+output: html_document
+---
+
+```{r setup, include =FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+```
+
+
+# PokeAPI Vignette by d-ev-craig
+
+## Index:  
+    * Intro
+    * Required Libraries and Packages
+    * Accessing the API
+    * Exploratory Data Analysis  
+  
+### Intro
+PokeAPI is a read-only, no-key required, API that stores information about the generational pokemon games from Red version to Sword and Shield (the most recent). This vignette will be a great way to become familiar with using APIs and look at some design choices to an iconic game from many of our childhoods.  
+
+### Required Libraries and Packages  
+This vignette will use the following libraries to talk to the PokeAPI. The tidyverse library will mainly be for utilizing the dplyr package.  
+
+**httr** will be used for access to the GET function to access our API
+**jsonlite** will be used to help format and clean up our data into a cleaner form
+**tidyverse** will mainliy be used for its dplyr package
+**ggplot2** will gives us access to the geom functions as our visualizers of choice
+
+```{r}
+library(httr)
+library(jsonlite)
+library(tidyverse)
+library(ggplot2)
+```
+
+### Accessing the API  
+  This API is relatively simple as we will only need to be concerned about knowing its structure. [PokeAPI's](https://pokeapi.co/) structure is relatively simple with clear [documentation](https://pokeapi.co/docs/v2). It is important to note two things about this API that is particularly odd.
+  1. No API key is required.  
+  2. No limits to calls.  
+  They do request that calls are limited to begin with, but most API's will require an API key to be passed for tracking and other purpose for the intent of monitoring frequency of calls. Normally we would have to be concerned about this.  
+  Below I made some basic functions that will simplify our calling process so that we do not have to call, translate, and clean up the info we're looking for. To use them correctly, you will need to understand the structure and endpoints available to us.
+
+
+
+GET("https://pokeapi.co/api/v2/stat/pikachu/")
+
+GET("https://pokeapi.co/api/v2/pokemon/ditto")
+
+fromJSON(rawToChar(ditto$content))
