@@ -42,7 +42,187 @@ library(ggplot2)
   2. No limits to calls.  
   They do request that calls are limited to begin with, but most API's will require an API key to be passed for tracking and other purpose for the intent of monitoring frequency of calls. Normally we would have to be concerned about this.  
   Below I made some basic functions that will simplify our calling process so that we do not have to call, translate, and clean up the info we're looking for. To use them correctly, you will need to understand the structure and endpoints available to us.
+  
+### Helper Functions  
+Below I created two helper function in convert and pokeCheck. COnvert will convert our content vectors from JSON to something readable. pokeCheck is a function that will help check the URLs that we build with our options. Our main functions accessing endpoints will be customized such that depending on the user passed arguments, it will build a different URL to access. pokeCheck will give a bit more explanation than the different cryptic errors passed to us without it.  
 
+
+```{r Convert, echo = TRUE}
+convert <- function(x) {
+  clean <- fromJSON(rawToChar(x$content))
+}
+```
+```{r lconvert, echo = TRUE}
+lconvert <- function(x){
+  lclean <- lapply(x = x$content, FUN = rawToChar, MARGIN = 2)
+  lclean2 <- lapply( X = lclean, FUN = fromJSON, MARGIN =2)
+  lconvertout <<- lclean2
+}
+```
+
+
+```{r}
+pokeCheck <- function(baseURL, pokemon) {
+ 
+  fullURL <- paste0(baseURL,pokemon)
+  
+  lOutput <- lapply(X = fullURL, MARGIN = 2, FUN = GET)
+  
+  # getOutput <- GET(fullURL)
+  # if (getOutput$status_code == "404"){
+  #   message <- paste0("This pokemon/generation/type is either mis-spelled, doesn't exist, or uses capital letters. Remove any capitals or symbols and please try again.")
+  #   stop(message)
+  # }
+  # return(fullURL)
+  
+  return(lOutput <<- lOutput)
+  # outputAPI <- convert(GET(fullURL))
+  
+  # if (outputAPI$content == "No content"){
+  #   checkValue <- FALSE
+  #   return(checkValue)
+  #   invisible(outputAPI)
+  #   invisible(fullURL)
+  }
+
+```
+
+### Main Functions  
+    *pokePull
+    *pokeDex
+    
+One of our main functions is pokePull. This will allow the user to pull specific pokemon by name or a list of all pokemon with their URL to access that pokemon's info. If one is looking for stats, flavor text, and other more specific info, one can pass no argument, and then pick a pokemon from the list.
+
+```{r PokePull, echo = TRUE}
+pokePull <- function (pokemon = "") {
+  
+  baseURL <- "https://pokeapi.co/api/v2/pokemon/"
+  
+  if(pokemon == ""){
+    fullURL <- "https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0"
+  }
+  else {
+    fullURL <- paste0(baseURL,pokemon)
+  }
+  
+  # if (pokemon != "" &&  is.vector(pokemon) == FALSE){#((is.character(pokemon) == FALSE) && (is.numeric(pokemon)) == FALSE)) {
+  #   #if(typeof(pokemon) != "character"){
+  #   message <- paste0("The pokemon can only be characters A-Z. Try again with only letters.")
+  #     stop(message)
+  # }
+  
+  
+  #pokeCheck(baseURL,pokemon)
+
+  fullURL
+  outputPoke <<- lapply(X = fullURL, MARGIN = 2, FUN = GET)
+  outputPoke <<- lapply(X =outputPoke, FUN = convert) #convert(outputPoke)
+  pokemonNames <<- c(outputPoke[[1]]$results)
+  return(list(outputPoke = outputPoke, pokemonNames))
+  
+  
+  } 
+```
+
+```{r GET lapply, echo = TRUE}
+getlapply <- function(vec)
+ getloutput <<- lapply(X = vec , MARGIN = 2, FUN = GET)
+convert(getloutput)
+```
+
+
+```{r PokePull2, echo = TRUE}
+pokePull2 <- function (url) {
+  
+  
+  
+  # if (pokemon != "" &&  is.vector(pokemon) == FALSE){#((is.character(pokemon) == FALSE) && (is.numeric(pokemon)) == FALSE)) {
+  #   #if(typeof(pokemon) != "character"){
+  #   message <- paste0("The pokemon can only be characters A-Z. Try again with only letters.")
+  #     stop(message)
+  # }
+  
+  
+  outputPoke2 <<- lapply(X = url, MARGIN = 2, FUN = GET)
+  outputPoke2 <<- lapply(X =outputPoke, FUN = convert) #convert(outputPoke)
+  return(outputPoke = outputPoke)
+  
+  } 
+```
+
+The pokeDex will allow us to pull a list of pokemon inside specific generations. This is mainly useful for when you aren't sure which pokemon you're looking for or want to clearly see when different pokemon were introduced. To see a list of possible values, don't pass any arguments, and then pick from the list of names, or notice the digit used in the url, to pass to the pokeDex() argument.
+
+```{r pokeGens, echo = TRUE}
+pokeDex <- function(dex = ""){
+  if (dex != "" && ((is.character(dex)== FALSE) || (is.numeric(dex)== FALSE))){
+    message <- paste0("Generation values can only be characters A-Z with no spaces or numeric.")
+  }
+  
+  baseURL <- "https://pokeapi.co/api/v2/pokedex/"
+  pokeCheck(baseURL,dex)
+  outputDex <<- convert((GET(paste0(baseURL,dex))))
+  return(outputDex = outputDex)
+}
+
+```
+PokeType will let you query all tpokhe different types available if you don't pass an argument, or all of the pokemon of a certain type with their URL for further information about them.attr
+```{r pokeTypes, echo = TRUE}
+pokeType <- function(type=""){
+  if (type != "" && ((is.character(type) == FALSE) || (is.numeric(type) == FALSE))){
+   message <- paste0("Type values can only be characters A-Z with no spaces or numeric and no capitals! Try not passing any arguments and using outputType$results for valid options.")
+}
+
+baseURL <- "https://pokeapi.co/api/v2/type/"
+pokeCheck(baseURL, type)
+outputType <<- convert((GET(paste0(baseURL,type))))
+return(list((outputType = outputType)))
+}
+
+```
+
+### EDA
+
+In our Exploratory Data Analysis, I'm particularly interested in design choices concerning pokemon, their types, their generations, and their stats. Common topics in the gamer community is evaluating a game's power creep, over powered  strategies, and how the franchise develops over time. Let's take a quick look at how these different factors relate to each other.
+
+Lets get an idea of the number of pokemon of each type is in each generation.
+
+```{r}
+pokeDex("national")
+
+pokes <- pokePull2(url = outputDex$pokemon_entries$pokemon_species$url)
+#pokes <- pokePull(pokemon = outputDex$pokemon_entries$pokemon_species$outputname)
+#results <- pokePull(pokemon = pokes)
+
+names(pokes) <- outputDex$pokemon_entries$pokemon_species$name
+
+# vec <- (1:898)
+# data.frame(Pokemon = attributes(pokes)$names, url = outputDex$pokemon_entries$pokemon_species$url, 
+# 
+# (d <- data.frame(x = 1, y = 1:10, fac = fac))
+# lapply(pokes, `[`, 1)
+# pokemon?limit=100000&offset=0
+# getloutput[[898]]$content
+# lapply(dati_fault, \(x) colMeans(do.call(rbind, x)))
+```
+
+Definitely not complete. I've spent probably around 15 hours playing with this API to get the data into a usable format. I know I can, but I need to tinker more. The big hang up right now is that the info I want is stored on two different endpoints (No biggie there), but I'm trying to create my own dataframe with that info so that its much easier to perform analysis. In the end I wanted a df with columns: Name, HP, Attack, Defense, Special Attack, Special Defense, Speed, Generation, Legendary, Type1, Type2. I got stuck when attempting to pull the same info out of each list of dataframes the API returned for each pokemon. So it was something like going into 1000 heavily nested dataframes, pulling out the values located in the same spot from all 1000 for the above values in the column.
+
+Then I would perform my colMeans and the like.
+
+
+```{r scatterplot}
+
+```
+
+
+
+#hp, attack, defense, special-attack,special-defense, speed
+
+pivot_wider(practiceTemp,names_from = "names", values_from = "results..1..stats.base_stat")
+
+```{r}
+
+```
 
 
 GET("https://pokeapi.co/api/v2/stat/pikachu/")
